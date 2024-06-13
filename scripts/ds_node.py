@@ -120,7 +120,10 @@ class Deep_Sort_Node:
     # Get the LiDAR data within the bounding box region
 
     # track only A object
-    track = self.id_dict[self.desire_id]
+    track = self.id_dict.get(self.desire_id,True)
+    if track:
+      rospy.loginfo('box not detected')
+      return
     
     x1, y1, x2, y2 = track.to_tlbr()
 
@@ -132,10 +135,6 @@ class Deep_Sort_Node:
         
     valid = msg.ranges[k1:k2]
     boxrange = len(valid)
-
-    if not boxrange:
-      rospy.loginfo('box not detected')
-      return  #case out of camera angle
 
     sums = np.sum([val for val in valid if val != 0.0])
     avg = sums / len(valid) if len(valid) > 0 else 0.0  #linear distance

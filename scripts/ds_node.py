@@ -44,6 +44,7 @@ class Deep_Sort_Node:
     kd_y = rospy.get_param('~kd_y',1.0)   
     
     self.angref = rospy.get_param('~angref',False)   
+    self.control_period = rospy.get_param('~control_period',1.0)   
     
     ## init models
     track_model_path = rospy.get_param('~track_model_path',"$(find smart_pkg)/config/")   
@@ -153,8 +154,10 @@ class Deep_Sort_Node:
 
     if self.angref:
       self.twist = self.controller.get_twist_angular(avg,box_center_angle)  # publish lin/ang val
+      rospy.sleep(self.control_period)  # control period
     else:
       self.twist = self.controller.get_twist(x,y) # publish x/y val
+      rospy.sleep(self.control_period)  # control period
 
 
     self.cmd_pub.publish(self.twist)

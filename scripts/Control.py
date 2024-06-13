@@ -96,7 +96,39 @@ class PID:
             print("publish twist")
         
         return self.twist
+    
+    def get_twist_angular(self,linear,angular):
+        ##foward
+        # self.twist.linear.x = self.goal_x
+        # self.twist.linear.y = self.goal_y
+        
+        ### x setted linear
+        ### y setted anular
 
+
+        if self.debug:
+            str =  "***PID initialized***"
+            print(str)
+
+        p_err_x = linear - 0.5
+        p_err_y = angular
+
+        self.i_x_err += linear
+        self.i_y_err += angular
+
+        d_error_x = p_err_x - self.d_x_err
+        d_error_y = p_err_y - self.d_y_err
+
+        self.d_x_err = d_error_x
+        self.d_y_err = d_error_y
+
+        self.twist.linear.x = self.p_x * p_err_x + self.i_x * self.i_x_err + self.d_x * self.d_x_err
+        self.twist.linear.y = self.p_y * p_err_y + self.i_y * self.i_y_err + self.d_y * self.d_y_err
+
+        if self.debug:
+            print("publish twist")
+        
+        return self.twist
 
 class MPC():
     def __init__(self) -> None:

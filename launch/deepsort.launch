@@ -6,6 +6,8 @@
 
   <node name="Deepsort" pkg="smart_pkg" type="ds_node.py"  output="screen">
     <!-- PID controller setting -->
+
+    <!-- if angref == True -> x: linear y: angular -->
     <arg name="kp_x" default="1.0"/>
     <arg name="ki_x" default="0.0"/>
     <arg name="kd_x" default="0.0"/>

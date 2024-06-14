@@ -48,7 +48,9 @@ class Deep_Sort_Node:
     
     ## init models
     track_model_path = rospy.get_param('~track_model_path',"$(find smart_pkg)/config/")   
-    self.track_model = DeepSort(model_path=track_model_path,max_age=2)
+    deep_age = rospy.get_param('~deep_age',3)   
+
+    self.track_model = DeepSort(model_path=track_model_path,max_age=deep_age)
 
     detect_model_path = rospy.get_param('~detect_model_path',"$(find smart_pkg)/config/")   
     self.detect_model = YOLO(detect_model_path)

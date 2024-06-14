@@ -8,6 +8,8 @@
     <!-- PID controller setting -->
 
     <!-- if angref == True -> x: linear y: angular -->
+    <arg name="angref" default="True"/>
+
     <arg name="kp_x" default="1.0"/>
     <arg name="ki_x" default="0.0"/>
     <arg name="kd_x" default="0.0"/>
@@ -15,11 +17,14 @@
     <arg name="kp_y" default="1.0"/>
     <arg name="ki_y" default="0.0"/>
     <arg name="kd_y" default="0.0"/>
-    
-    <arg name="angref" default="True"/>
-    <arg name="control_period" default="0.0"/>
 
+    <!-- control_period setting -->
+    <arg name="control_period" default="1.0"/>
+
+    <!-- deepsort params -->
     <arg name="track_model_path" default="($find smartfarm_pkg)/deep_sort/deep/checkpoint/ckpt.t7"/>
+    <arg name="detect_age" default="3"/>
+    
     <!-- put YOLO model path -->
     <arg name="detect_model_path" default="($find smartfarm_pkg)/config/"/>
   </node>

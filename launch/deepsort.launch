@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 <launch>
   <!-- Camera driver setting -->
-  <include file="$(find usb_cam)/"/>
+  <!-- <include file="$(find usb_cam)/"/> -->
+  
+  <!-- lidar driver setting -->
+  <!-- <include file="$(find lidar name)/"/> -->
   
 
   <node name="Deepsort" pkg="smart_pkg" type="ds_node.py"  output="screen">

@@ -5,31 +5,31 @@
   
   <!-- lidar driver setting -->
   <!-- <include file="$(find lidar name)/"/> -->
-  
+    <include file="$(find robot_bringup)/launch/robot_bringup.launch"/>
 
   <node name="Deepsort" pkg="smart_pkg" type="ds_node.py"  output="screen">
     <!-- PID controller setting -->
 
     <!-- if angref == True -> x: linear y: angular -->
-    <arg name="angref" default="True"/>
+    <param name="angref" value="True"/>
 
-    <arg name="kp_x" default="1.0"/>
-    <arg name="ki_x" default="0.0"/>
-    <arg name="kd_x" default="0.0"/>
+    <param name="kp_x" value="1.0"/>
+    <param name="ki_x" value="0.0"/>
+    <param name="kd_x" value="0.0"/>
 
-    <arg name="kp_y" default="1.0"/>
-    <arg name="ki_y" default="0.0"/>
-    <arg name="kd_y" default="0.0"/>
+    <param name="kp_y" value="1.0"/>
+    <param name="ki_y" value="0.0"/>
+    <param name="kd_y" value="0.0"/>
 
     <!-- control_period setting -->
-    <arg name="control_period" default="1.0"/>
+    <param name="control_period" value="2.0"/>
 
     <!-- deepsort params -->
-    <arg name="track_model_path" default="($find smartfarm_pkg)/deep_sort/deep/checkpoint/ckpt.t7"/>
-    <arg name="detect_age" default="3"/>
+    <param name="track_model_path" value="/home/nvidia/catkin_ws/src/smart_pkg/include/deep_sort/deep/checkpoint/ckpt.t7"/>
+    <param name="detect_age" value="3"/>
     
     <!-- put YOLO model path -->
-    <arg name="detect_model_path" default="($find smartfarm_pkg)/config/"/>
+    <param name="detect_model_path" value="yolov8n.pt"/>
   </node>
 
 </launch>

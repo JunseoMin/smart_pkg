@@ -84,6 +84,46 @@ class Deep_Sort_Node:
     rospy.loginfo('-----------------------')
 
 
+    #calib param
+    #rvec
+    self.rvec = np.array([[-0.60134519],[-1.86203176],[-1.86509407]],dtype="double")
+    self.tvec = np.array([[1.81745753],[0.00457257],[-2.86750681]],dtype="double")
+    self.cammat = np.array([[1.05219633e+3,1.28607498e+01,6.9360786e+02],
+                            [0.0,1.05627925e+03,3.66707863e+02,],
+                            [0,0,1]],dtype="double")
+
+  def get_lidar_points_in_bbox(self,scan, bounding_box):
+
+    angles = np.linspace(scan.angle_min, scan.angle_max, len(scan.ranges))
+    
+    # Calculate FOV limits in radians from degrees
+    fov_deg = 75.0
+    fov_rad = np.radians(fov_deg)
+    fov_min = -fov_rad / 2.0
+    fov_max = fov_rad / 2.0
+
+    points_lidar = []
+    for r, a in zip(scan.ranges, angles):
+        if r < scan.range_max and r > scan.range_min:
+            if a >= fov_min and a <= fov_max:
+                points_lidar.append((r * np.cos(a), r * np.sin(a), 0))
+
+    points_lidar = np.array(points_lidar)
+
+    points_img, _ = cv2.projectPoints(points_lidar, self.rvec, self.tvec, self.cammat, self.dist_coeffs)
+    points_img = points_img.reshape(-1, 2)
+    
+    x_min, y_min, x_max, y_max = bounding_box
+    lidar_points_in_bbox = []
+
+    for (x, y), (x_lidar, y_lidar) in zip(points_img, points_lidar[:, :2]):
+      if x_min <= x <= x_max and y_min <= y <= y_max:
+        distance = np.sqrt(x_lidar**2 + y_lidar**2)
+        angle = np.arctan2(y_lidar, x_lidar)
+        lidar_points_in_bbox.append((x_lidar, y_lidar, distance, angle))
+
+    return lidar_points_in_bbox
+
   def deepsort(self,img):
     yolo_output = self.detect_model(img,device='cpu',classes = [0],conf = 0.8)
     ## get bounding box info
@@ -160,37 +200,36 @@ class Deep_Sort_Node:
       return
     
     x1, y1, x2, y2 = track.to_tlbr()
+    bbox = track.to_tlbr()
+    
+    boxlidar = self.get_lidar_points_in_bbox(bbox)
+    
+    mean_dis = 0.0
+    mean_ang = 0.0
+    tmp = 1
 
-    k1 = int((250 / 640 * x1) + 850)
-    k2 = int((250 / 640 * x2) + 850)
+    for x, y, distance, angle in boxlidar:
+      rospy.loginfo(f"Point in bbox - Distance: {distance:.2f} m, Angle: {np.degrees(angle):.2f} degrees")
+      mean_dis += distance
+      mean_ang += angle
+      tmp+=1
+    
+    mean_dis/=tmp
+    mean_ang/=tmp
 
-    tmp = 0
-    sums = 0.
-        
-    valid = msg.ranges[k1:k2]
-    boxrange = len(valid)
+    x = mean_dis * cos(mean_ang)      
+    y = mean_dis * sin(mean_ang)
 
-    sums = np.sum([val for val in valid if val != 0.0])
-    avg = sums / len(valid) if len(valid) > 0 else 0.0  #linear distance
+    rospy.loginfo('*** !debug! angle start: {} '.format(mean_dis))
+    rospy.loginfo('*** !debug! angle end: {} '.format(mean_ang))
+    
+    self.twist = self.controller.get_twist_angular(mean_dis,mean_ang)  # publish lin/ang val
+    rospy.sleep(self.control_period)  # control period
 
-
-    box_angle_start = angles[k1]
-    box_angle_end = angles[k2]
-    box_center_angle = (box_angle_start + box_angle_end) / 2
-
-    x = avg * cos(box_center_angle)      
-    y = avg * sin(box_center_angle)
-
-    rospy.loginfo('*** !debug! angle start: {} '.format(box_angle_start))
-    rospy.loginfo('*** !debug! angle end: {} '.format(box_angle_end))
-    rospy.loginfo('*** !debug! anglemin: {} '.format(box_center_angle))
-
-    if self.angref:
-      self.twist = self.controller.get_twist_angular(avg,box_center_angle)  # publish lin/ang val
-      rospy.sleep(self.control_period)  # control period
-    else:
-      self.twist = self.controller.get_twist(x,y) # publish x/y val
-      rospy.sleep(self.control_period)  # control period
+    # if self.angref:
+    # else:
+    #   self.twist = self.controller.get_twist(x,y) # publish x/y val
+    #   rospy.sleep(self.control_period)  # control period
 
 
     self.cmd_pub.publish(self.twist)
